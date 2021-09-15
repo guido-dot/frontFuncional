@@ -216,7 +216,7 @@
 </template>
 
 <script>
-import CardProduct from "@/components/cards/CardProduct.vue";
+import CardProduct from "@/components/order/CardProduct.vue";
 import LoadingGraphql from "@/components/common/LoadingGraphql.vue";
 import ConnectionErrorGraphql from "@/components/common/ConnectionErrorGraphql.vue";
 

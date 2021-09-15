@@ -16,9 +16,7 @@
         </div>
       </div>
     </div>
-    <div class="row">
-      <h4 class="mt-2">Comentarios y calificaciones</h4>
-    </div>
+    <SubTitle content="Comentarios y calificaciones"></SubTitle>
     <div class="row">
       <div class="col-5 mt-2">
         <h2>Promedio</h2>
@@ -42,6 +40,9 @@
         <div v-for="comment in allReviews.edges" :key="comment.node.id">
           <TextArea :review="comment.node" />
         </div>
+        <div>
+          <a href="#" class="stretched-link">Agregar comentario</a>
+        </div>
       </div>
     </div>
   </div>
@@ -51,11 +52,13 @@
 import TextArea from "@/components/cards/TextArea.vue";
 import LoadingGraphql from "@/components/common/LoadingGraphql.vue";
 import ConnectionErrorGraphql from "@/components/common/ConnectionErrorGraphql.vue";
+import SubTitle from "@/components/cards/SubTitles.vue";
 
 export default {
   name: "CommentsList",
   components: {
     TextArea,
+    SubTitle,
     LoadingGraphql,
     ConnectionErrorGraphql,
   },

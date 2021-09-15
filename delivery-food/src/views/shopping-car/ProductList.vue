@@ -28,9 +28,7 @@
       </div>
     </div>
 
-    <div class="row">
-      <h4 class="mt-2">Realizar pedido</h4>
-    </div>
+    <SubTitle content="Realizar pedido"></SubTitle>
     <!--Sección  ofertar producto-->
     <div class="row">
       <!--Sección productos ofertados-->
@@ -49,7 +47,6 @@
             </div>
           </div>
 
-          
           <div v-if="$apollo.loading">
             <LoadingGraphql />
           </div>
@@ -89,6 +86,7 @@
                           class="btn btn-outline-dark btn-sm ml-2"
                           v-on:click="addItem(product)"
                         >
+                          {{ mounted() }}
                           Añadir
                         </button>
                       </span>
@@ -102,13 +100,16 @@
         </div>
         <!--Carrito-->
 
-        <div class="col-5">
-          <div class="card border-dark color_carro">
+        <div class="col-5" v-if="this.items.length > 1">
+          <div class="card border-dark">
             <div class="row">
               <div class="col mt-3" style="text-align: left; margin-left: 10px">
                 <span style="font-weight: bold">Mi pedido</span>
               </div>
-              <div class="col mt-2" style="text-align: right">
+              <div
+                class="col mt-2"
+                style="text-align: right"
+              >
                 <label
                   type="button"
                   class="btn btn-xs"
@@ -130,6 +131,7 @@
               </div>
             </div>
             <!--Items-->
+            {{ mounted() }}
             <div
               class=""
               v-for="(item, indice) of this.items"
@@ -164,11 +166,10 @@
                 </div>
 
                 <div class="col" style="padding-right: 1%">
-                  {{ items[indice].recoveredProduct.name }}
+                  {{ items[indice].recoveredProduct.name | capitalize}}
                 </div>
                 <div class="col">
                   {{ updateTotal(indice) }}
-                  <!-- {{ calculateEstimatedTime() }}-->
                   {{
                     new Intl.NumberFormat().format(
                       items[indice].recoveredProduct.price *
@@ -190,6 +191,7 @@
             </div>
             <!--costos-->
             <br />
+            <!-- <TotalOrder :total="this.total" :envio="this.envio"></TotalOrder> -->
             <div class="row ml-1">
               <div class="col">
                 <p style="text-align: left; margin-left: 2%">
@@ -198,14 +200,12 @@
                 </p>
               </div>
               <div class="col">
+                {{ persist() }}
                 <p>
-                  $ {{ new Intl.NumberFormat().format(4000) }} <br />
-                  $ {{ new Intl.NumberFormat().format(this.total) }} <br />
+                  $ {{ new Intl.NumberFormat().format(envio) }} <br />
+                  $ {{ new Intl.NumberFormat().format(total) }} <br />
                   <span style="font-weight: bold"
-                    >$
-                    {{
-                      new Intl.NumberFormat().format(this.total + 4000)
-                    }}</span
+                    >$ {{ new Intl.NumberFormat().format(total + envio) }}</span
                   >
                 </p>
               </div>
@@ -320,9 +320,11 @@
 </template>
 
 <script>
-import ProductCard from "@/components/cards/CardProduct.vue";
+import ProductCard from "@/components/order/CardProduct.vue";
 import LoadingGraphql from "@/components/common/LoadingGraphql.vue";
 import ConnectionErrorGraphql from "@/components/common/ConnectionErrorGraphql.vue";
+import SubTitle from "@/components/cards/SubTitles.vue";
+// import TotalOrder from "@/components/order/TotalOrder.vue";
 
 export default {
   name: "ProductsList",
@@ -330,6 +332,8 @@ export default {
     ProductCard,
     LoadingGraphql,
     ConnectionErrorGraphql,
+    SubTitle,
+    // TotalOrder,
   },
   data() {
     return {
@@ -339,6 +343,7 @@ export default {
 
       items: [{ recoveredProduct: Object, counter: null }],
       total: 0,
+      envio: 4000,
       estimatedTime: 0,
       // Variable que recibe el error de la consulta
       error: null,
@@ -398,10 +403,6 @@ export default {
     };
   },
   methods: {
-    redirectProductAdd() {
-      this.$router.push({ name: "ProductAdd" });
-    },
-
     showProduct(idProduct) {
       var producto = this.allProducts.edges.filter(
         (element) => element.node.id == idProduct
@@ -455,6 +456,7 @@ export default {
           this.items[index].counter++;
         }
       }
+      this.saveItems();
     },
     updateTotal() {
       var sumatoria = 0;
@@ -464,6 +466,7 @@ export default {
           this.items[index].recoveredProduct.price * this.items[index].counter;
       }
       this.total = sumatoria;
+      this.saveItems();
     },
     decrementCounter(id) {
       for (var index = 1; index < this.items.length; index++) {
@@ -481,17 +484,14 @@ export default {
           }
         }
       }
+      this.saveItems();
     },
-    /*calculateEstimatedTime() {
-      var sumatoria = 0;
-      for (var index = 1; index < this.items.length; index++) {
-        sumatoria = sumatoria + this.items[index].producto.estimatedTime;
-      }
-      this.estimatedTime = sumatoria;
-    },*/
+
     deleteCart() {
       //if (window.confirm("¿Desea eliminar todos los items?")) {
       this.items.splice(1, this.items.length);
+      localStorage.removeItem("items");
+      this.deleteVariables();
       //}
     },
     continueOrder() {
@@ -515,20 +515,35 @@ export default {
       } else {
         this.incrimentarContador();
       }
-      this.saveItems();
     },
     mounted() {
       if (localStorage.getItem("items")) {
         try {
           this.items = JSON.parse(localStorage.getItem("items"));
+          if (localStorage.envio) {
+            this.envio = parseFloat(localStorage.envio);
+          }
+          if (localStorage.total) {
+            this.total = parseFloat(localStorage.total);
+          }
         } catch (error) {
-          localStorage.removeItem("items");
+          this.deleteVariables();
         }
       }
+    },
+    deleteVariables() {
+      localStorage.removeItem("items");
+      localStorage.removeItem("envio");
+      localStorage.removeItem("total");
     },
     saveItems() {
       const parsed = JSON.stringify(this.items);
       localStorage.setItem("items", parsed);
+      this.persist();
+    },
+    persist() {
+      localStorage.envio = this.envio;
+      localStorage.total = this.total;
     },
   },
   /**

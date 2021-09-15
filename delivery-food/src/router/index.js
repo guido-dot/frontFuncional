@@ -96,8 +96,8 @@ const routes = [
   },
   {
     path: "/products-order",
-    name: "ProductList",
-    component: () => import("@/views/shopping-car/ProductList.vue"),
+    name: "ProductListOrder",
+    component: () => import("@/views/shopping-car/ProductListOrder.vue"),
   },
   {
     path: "/order-confirmation",
@@ -109,6 +109,12 @@ const routes = [
     name: "CommentsList",
     component: () => import("@/views/ratings-comments/CommentsList.vue"),
   },
+  {
+    path: "/add-Rating",
+    name: "AddRating",
+    component: () =>
+        import("@/views/ratings-comments/AddRating.vue"),
+},
 ];
 
 const router = new VueRouter({

@@ -26,12 +26,9 @@
         </button>
       </div>
     </div>
-    <div class="row">
-      <h4 class="mt-2">Completa tu dirección de entrega</h4>
-    </div>
+    <SubTitle content="Completa tu dirección de entrega"></SubTitle>
     <div class="row">
       <div class="col-md-7 mt-2">
-
         <div class="form-group row">
           <label class="col-sm-auto col-form-label">Buscar</label>
           <div class="col-sm">
@@ -46,8 +43,6 @@
             </select>
           </div>
         </div>
-
-        <br />
         <template>
           <span v-if="msjError === 'error'">
             {{ cleanError() }}
@@ -93,7 +88,7 @@
         <div class="container text-center">
           <button
             class="rounded-pill btn btn-sm btn-outline-dark"
-            v-on:click="validate()"
+            v-on:click="confirmOrder()"
           >
             Enviar pedido
           </button>
@@ -101,8 +96,8 @@
         <br />
       </div>
 
-      <div class="col-5 mt-4">
-        <div class="card border-dark color_carro">
+      <div class="col-5">
+        <div class="card border-dark">
           <div class="row">
             <div class="col mt-3 container text-center">
               <span style="font-weight: bold">Mi pedido</span>
@@ -115,7 +110,7 @@
               {{ items[indice].counter }}
 
               <div class="col" style="padding-right: 1%">
-                {{ items[indice].recoveredProduct.name }}
+                {{ items[indice].recoveredProduct.name | capitalize }}
               </div>
               <div class="col">
                 {{ updateTotal(indice) }}
@@ -129,7 +124,7 @@
           </div>
           <!--costos-->
           <hr />
-          <div class="row ml-1 container text-center">
+          <!-- <div class="row ml-1 container text-center">
             <div class="col">
               <p style="text-align: left; margin-left: 2%">
                 Envio <br />Sub-Total <br />
@@ -146,7 +141,8 @@
                 >
               </p>
             </div>
-          </div>
+          </div> -->
+          <TotalOrder :total="this.total" :envio="this.envio"></TotalOrder>
         </div>
       </div>
     </div>
@@ -155,10 +151,14 @@
 
 <script>
 import Geolocation from "@/components/geolocation/Geolocation.vue";
+import SubTitle from "@/components/cards/SubTitles.vue";
+import TotalOrder from "@/components/order/TotalOrder.vue";
 export default {
   name: "OrderConfirmation",
   components: {
     Geolocation,
+    SubTitle,
+    TotalOrder,
   },
   data() {
     return {
@@ -179,6 +179,7 @@ export default {
       productId: "",
       orderId: "",
       total: 0,
+      envio: 0,
       msjError: "",
       error: null,
     };
@@ -209,6 +210,7 @@ export default {
         console.log("Datos:  ", user);
       }
     },
+
     updateTotal() {
       var sumatoria = 0;
       for (var index = 1; index < this.items.length; index++) {
@@ -262,7 +264,6 @@ export default {
       this.saveItems();
     },
     calculateEstimatedTime() {
-      console.log("ingresando al metodo");
       var sumatoria = 0;
       for (var index = 1; index < this.items.length; index++) {
         sumatoria =
@@ -282,8 +283,6 @@ export default {
         this.msjError = "Ingrese una direccion o seleccione en el mapa";
         return false;
       }
-      console.log("Tam MIMD: " + this.location.trim().length);
-      console.log("Dir MIMD2: " + this.location);
       return true;
     },
     cleanInput() {
@@ -344,6 +343,8 @@ export default {
 
         this.$router.push({ name: "ProductList" });
         localStorage.removeItem("items");
+        localStorage.removeItem("envio");
+        localStorage.removeItem("total");
       }
     },
   },
